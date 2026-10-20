@@ -1,1 +1,62 @@
-# Princess-runner-file
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    private CharacterController controller;
+    private Vector3 direction;
+    public float forwardSpeed = 10f;
+    public float laneDistance = 2.5f; // Khoảng cách giữa các làn
+    private int desiredLane = 1; // 0: Trái, 1: Giữa, 2: Phải
+    public float jumpForce = 8f;
+    public float gravity = -20f;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+    }
+
+    void Update()
+    {
+        // Tốc độ chạy tiến về phía trước
+        direction.z = forwardSpeed;
+
+        // Xử lý chuyển làn bằng phím hoặc vuốt màn hình
+        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
+        {
+            desiredLane++;
+            if (desiredLane == 3) desiredLane = 2;
+        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
+        {
+            desiredLane--;
+            if (desiredLane == -1) desiredLane = 0;
+        }
+
+        // Tính toán vị trí mục tiêu theo chiều ngang
+        Vector3 targetPosition = transform.position.z * transform.forward + transform.position.y * transform.up;
+        
+        if (desiredLane == 0)
+            targetPosition += Vector3.left * laneDistance;
+        else if (desiredLane == 2)
+            targetPosition += Vector3.right * laneDistance;
+
+        // Di chuyển mượt mà sang làn đường mới
+        transform.position = Vector3.Lerp(transform.position, targetPosition, 20 * Time.deltaTime);
+
+        // Xử lý Nhảy và Trọng lực
+        if (controller.isGrounded)
+        {
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
+            {
+                direction.y = jumpForce;
+            }
+        }
+        else
+        {
+            direction.y += gravity * Time.deltaTime;
+        }
+
+        // Thực hiện di chuyển nhân vật
+        controller.Move(direction * Time.deltaTime);
+    }
+}
